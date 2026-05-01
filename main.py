@@ -17,7 +17,8 @@ class app(tk.Tk):
         self.geometry(f"{winW}x{winH}")
         self.frame = tk.Frame(self)
         self.frame.pack(fill="both")
-        self.home()
+        self.home(self.frame)
+        self.menu()
 
     def Add(self,rsn, amt, frame): 
         for widget in frame.winfo_children(): # Refresh the Data Added or Invalid entry line
@@ -92,9 +93,12 @@ class app(tk.Tk):
         with open ("budget.txt", 'w') as file:
             file.write(self.budget.get())
 
-    def home(self):
-        frame = ttk.Frame(self.frame) # Bigger body frame
-        frame.pack(side="top", fill="x")
+    def home(self, frame):
+        for widget in frame.winfo_children():
+            widget.destroy()
+
+        frame = ttk.Frame(frame) # This creates a frame inside self.frame
+        frame.pack(fill="x")
 
         '''Budget'''
         self.bframe = ttk.Frame(frame)
@@ -141,6 +145,39 @@ class app(tk.Tk):
         self.vframe = ttk.Frame(self.frame)
         self.vframe.pack(anchor="center")
         tk.Button(frame, text="View", font="Arial 20", background="white", command=lambda: self.View(self.vframe)).grid(row=1, column=4, padx=100)
+
+    def menu(self): 
+        '''Menubar'''
+        menubar = tk.Menu(font="Arial 15 bold") # Menubar created, Font size determine the menubar size
+        self.config(menu=menubar) # Menubar added in root window
+        menubar.add_separator() # Adds a horizontal line in bottom separating menubar from the rest
+        menubar.add_command(label="Home", command=lambda: self.home(self.frame)) # Home Option
+        menubar.add_command(label="Analytics", command=lambda: self.analytics(self.frame)) # Home Option
+    
+    def analytics(self, frame):
+        for widget in frame.winfo_children():
+            widget.destroy()
+        
+        from matplotlib import pyplot as plt
+        import numpy as np
+        from matplotlib.figure import Figure
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+        with open("Record.txt", 'r') as file:
+            tasks = file.readlines()
+        category = []
+        amount = []
+        for task in tasks:
+            category.append(task.split(',')[1])
+            amount.append(int(task.split(',')[3][:-1]))
+        print(category, amount)
+        
+        fig = Figure(figsize=(10,10))
+        ax = fig.add_subplot(111)
+        ax.pie(amount, radius = 1, labels=category, autopct="%0.2f%%")
+        canvas = FigureCanvasTkAgg(fig, master=frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack()
+
 
 Session = app()
 Session.mainloop()
