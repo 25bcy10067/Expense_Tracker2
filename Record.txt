@@ -1,2 +1,5 @@
-2026-04-29,Stationary,5 pen,50
-2026-04-29,Laundary,5 wash,50
+May 2026
+2026-05-02,Laundary,4 wash,40
+2026-05-02,Food,Samosa,15
+2026-05-02,Food,Samosa,12
+2026-05-02,Food,Samosa,12

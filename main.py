@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from datetime import date # To get current date
+from datetime import date, datetime # To get current date
 class app(tk.Tk):
     def ratio_converter(self, iwidth, iheight): # Ration converter for optimum window-size according to screen
         fwidth = int(iwidth * (8/10))
@@ -49,12 +49,13 @@ class app(tk.Tk):
             ttk.Label(frame, text="Invalid Amount Entered", font="Arial 20").pack(anchor="center") #If amount entered is negavtive number
             return None
 
-        with open ("Record.txt", 'r+') as file: # writing data in file
-            data = file.read() #To memorise data from file
-            file.seek(0) #set cursor to 0
-            file.truncate() #delete all data from the cursor to end of file
-            file.write(f"{date.today()},{cat},{rsn},{amt}\n{data}") # Write as added data then memorised data
-            ttk.Label(frame, text="Data Added", font="Arial 20").pack(anchor="center")
+        # with open ("Record.txt", 'r+') as file: # writing data in file
+        #     data = file.read() #To memorise data from file
+        #     file.seek(0) #set cursor to 0
+        #     file.truncate() #delete all data from the cursor to end of file
+        #     file.write(f"{date.today()},{cat},{rsn},{amt}\n{data}") # Write as added data then memorised data
+        self.order(f"{date.today()},{cat},{rsn},{amt}\n") # Add Month and Year to sort between records
+        ttk.Label(frame, text="Data Added", font="Arial 20").pack(anchor="center")
 
         '''Storing Budget and making it change with the expense'''
         with open("budget.txt", 'r') as file:
@@ -123,17 +124,17 @@ class app(tk.Tk):
         '''Reason'''
         rsnframe = ttk.Frame(frame)
         rsnframe.grid(row=1,column = 1, padx=100)
-        ttk.Label(rsnframe, text="Reason", font="Arial 14").pack()
+        ttk.Label(rsnframe, text="Reason", font="Arial 18").pack()
         reasonV = tk.StringVar() # Stores value from the reason box but the value needs to be called by using ".get()"
-        reasonW = ttk.Entry(rsnframe, textvariable=reasonV)
+        reasonW = ttk.Entry(rsnframe, textvariable=reasonV, font="Arial 18", width=13)
         reasonW.pack()
 
         '''Amount'''
         amtframe = ttk.Frame(frame)
         amtframe.grid(row =1, column=2)
-        ttk.Label(amtframe, text="Amount", font="Arial 14").pack()
+        ttk.Label(amtframe, text="Amount", font="Arial 18").pack()
         amountV = tk.StringVar() # Stores value from the amount box but the value needs to be called by using ".get()"
-        amountW = ttk.Entry(amtframe, textvariable=amountV)
+        amountW = ttk.Entry(amtframe, textvariable=amountV, font = "Arial 18", width=8)
         amountW.pack()
 
         '''Add Button'''
@@ -164,20 +165,40 @@ class app(tk.Tk):
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
         with open("Record.txt", 'r') as file:
             tasks = file.readlines()
-        category = []
-        amount = []
+        record = {}
         for task in tasks:
-            category.append(task.split(',')[1])
-            amount.append(int(task.split(',')[3][:-1]))
-        print(category, amount)
+            try:
+                if task.split(',')[1] not in record:
+                    # category.append(task.split(',')[1])
+                    # amount.append(int(task.split(',')[3][:-1]))
+                    record[task.split(',')[1]] = int(task.split(',')[3][:-1]) # Adds the new category with its amount in dictionary
+                else:
+                    record[task.split(',')[1]] = int(record[task.split(',')[1]]) + int(task.split(',')[3][:-1]) # Adds the last amount to new amount in integer form
+            except: continue
+        print(record.keys(), record.values())
         
         fig = Figure(figsize=(10,10))
         ax = fig.add_subplot(111)
-        ax.pie(amount, radius = 1, labels=category, autopct="%0.2f%%")
+        ax.pie(record.values(), radius = 1, labels=record.keys(), autopct="%0.2f%%")
         canvas = FigureCanvasTkAgg(fig, master=frame)
         canvas.draw()
         canvas.get_tk_widget().pack()
 
+    def order(self, line): # Add Month and Year to sort between records
+        month_year = ""
+        with open("Record.txt", 'r+') as file:
+            # last_date = file.readline().split(',')[0]
+            # last_date = last_date.split('-')[0:2]
+            cur_date = datetime.now().strftime('%B %Y') # Get current month and year
+            file.readline()
+            data = file.read() # get file data
+            file.seek(0) # set cursor to start
+            file.truncate() # delete file content
+            
+            if month_year != cur_date: # If the month and year of latest updated record is different than already stored than it adds new month and year
+                month_year = cur_date+"\n"
+
+            file.write(month_year+line+data) # Write the new data with month and year
 
 Session = app()
 Session.mainloop()
